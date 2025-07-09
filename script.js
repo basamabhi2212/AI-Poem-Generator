@@ -1,23 +1,37 @@
-async function generatePoem() {
-  const theme = document.getElementById("theme").value;
-  const poemResult = document.getElementById("poemResult");
+async function generateImage() {
+  const prompt = document.getElementById("imagePrompt").value;
+  const imageResult = document.getElementById("imageResult");
 
-  poemResult.textContent = "Generating...";
+  if (!prompt) {
+    imageResult.innerHTML = "Please enter a prompt.";
+    return;
+  }
 
-  const response = await fetch("https://api.openai.com/v1/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer YOUR_OPENAI_API_KEY" // Replace with your actual key
-    },
-    body: JSON.stringify({
-      model: "text-davinci-003",
-      prompt: `Write a short 4-line poem about "${theme}"`,
-      max_tokens: 50,
-      temperature: 0.7
-    })
-  });
+  imageResult.innerHTML = "Generating image...";
 
-  const data = await response.json();
-  poemResult.textContent = data.choices[0].text.trim();
+  try {
+    const response = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer YOUR_OPENAI_API_KEY" // Replace with your actual API key
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        n: 1,
+        size: "512x512"
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.data && data.data[0].url) {
+      const imageUrl = data.data[0].url;
+      imageResult.innerHTML = `<img src="${imageUrl}" alt="Generated Image">`;
+    } else {
+      imageResult.innerHTML = "Failed to generate image.";
+    }
+  } catch (error) {
+    imageResult.innerHTML = "Error: " + error.message;
+  }
 }
